@@ -203,7 +203,7 @@ The project follows these steps:
 | File | Description |
 |---|---|
 | `README.md` | Project documentation |
-| `your_notebook.ipynb` | Model training, evaluation, and OOD detection implementation |
+| `he_Model_That_Doesnt.ipynb` | Model training, evaluation, and OOD detection implementation |
 | `results.json` | Recorded evaluation metrics |
 
 **Note:** Replace `your_notebook.ipynb` with the actual filename of the uploaded notebook.
