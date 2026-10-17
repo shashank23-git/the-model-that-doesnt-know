@@ -1,26 +1,41 @@
 # The Model That Doesn't Know
 
+### Exploring Uncertainty Estimation and Out-of-Distribution Detection in Deep Learning
+
 ## Overview
 
 Deep learning models can make confident predictions even when they encounter images from classes they were never trained to recognize.
 
-This project explores uncertainty estimation and Out-of-Distribution (OOD) detection using a ResNet18 image classifier trained on CIFAR-10.
+For example, an image classifier trained to recognize airplanes, automobiles, birds, cats, and deer might confidently classify an unfamiliar dog image as a cat.
 
-The goal is to investigate whether a model can distinguish familiar images from unfamiliar ones instead of blindly making predictions.
+**The Model That Doesn't Know** explores this problem by investigating uncertainty estimation and Out-of-Distribution (OOD) detection using a ResNet18 image classifier trained on CIFAR-10.
+
+The objective is to evaluate whether different scoring methods can help distinguish familiar images from unfamiliar inputs.
 
 ## Problem Statement
 
-Traditional image classifiers always return a prediction, even when an input belongs to an unknown class.
+Traditional image classifiers generally assign an output class to every input, regardless of whether the input belongs to a known class.
 
-For example, a classifier trained to recognize airplanes, automobiles, birds, cats, and deer might confidently classify a dog as a cat.
+This can lead to unreliable predictions when a model encounters unfamiliar data.
 
-This project investigates techniques that can help identify such unfamiliar inputs.
+This project investigates three OOD detection techniques:
+
+- Maximum Softmax Probability (MSP)
+- Energy-Based Detection
+- Mahalanobis Distance
+
+The methods are evaluated to understand how effectively they distinguish in-distribution images from out-of-distribution images.
 
 ## Dataset
 
 The project uses the CIFAR-10 dataset.
 
+CIFAR-10 contains 60,000 color images across 10 classes.
+
 ### Known Classes
+
+The model is trained to classify five classes:
+
 - Airplane
 - Automobile
 - Bird
@@ -28,106 +43,199 @@ The project uses the CIFAR-10 dataset.
 - Deer
 
 ### Out-of-Distribution Classes
+
+The remaining five classes are treated as unfamiliar inputs:
+
 - Dog
 - Frog
 - Horse
 - Ship
 - Truck
 
-The model is trained using the five known classes. The remaining five classes are used to evaluate its ability to identify unfamiliar images.
+This setup allows the project to evaluate both classification performance on known classes and OOD detection performance on held-out classes.
 
 ## Model Architecture
 
-- Model: ResNet18
-- Framework: PyTorch
-- Pretrained weights: ImageNet
-- Loss function: Cross-Entropy Loss
-- Optimizer: Adam
-- Learning rate: 0.0001
-- Training epochs: 5
+The project uses ResNet18, a convolutional neural network architecture commonly used for image classification.
+
+### Configuration
+
+| Component | Configuration |
+|---|---|
+| Model | ResNet18 |
+| Framework | PyTorch |
+| Initial pretrained weights | ImageNet |
+| Dataset | CIFAR-10 |
+| Known classes | 5 |
+| OOD classes | 5 |
+| Loss function | Cross-Entropy Loss |
+| Optimizer | Adam |
+| Learning rate | 0.0001 |
+| Training epochs | 5 |
+| Image size | 224 × 224 |
+
+The final classification layer is modified to produce predictions for the five known classes.
 
 ## OOD Detection Methods
 
 ### 1. Maximum Softmax Probability (MSP)
 
-Uses the highest softmax probability as a confidence score. Lower confidence can indicate an unfamiliar input.
+MSP uses the highest softmax probability produced by the classifier as a confidence score.
+
+A lower maximum probability can indicate that the model is uncertain about an input.
+
+In this project, inputs with confidence below a selected threshold can be flagged as potentially out-of-distribution.
 
 ### 2. Energy-Based Detection
 
-Uses energy scores derived from the model's logits to investigate whether an input differs from the training distribution.
+Energy-Based Detection uses the model's logits to calculate an energy score.
+
+The energy score provides an alternative way to measure how an input relates to the model's learned class distribution.
+
+The implementation uses the negative log-sum-exp of the logits. With this convention, higher energy scores indicate potential OOD inputs.
 
 ### 3. Mahalanobis Distance
 
-Measures how far an input's feature representation is from the known-class feature distributions.
+Mahalanobis Distance measures how far an input's feature representation lies from the distribution of known training examples.
+
+The implementation extracts features from ResNet18's average-pooling layer and estimates the feature mean and covariance using known training features.
+
+Larger distances indicate that an input may differ from the known-class feature distribution.
 
 ## Evaluation Metrics
 
-The project investigates:
+The project uses the following metrics:
 
-- Classification accuracy
-- OOD AUROC
-- Known-class coverage
-- OOD false acceptance rate
-- Selective accuracy
+| Metric | Purpose |
+|---|---|
+| Classification Accuracy | Measures correct classification of known-class images |
+| OOD AUROC | Measures how effectively a score separates known and unfamiliar inputs |
+| Known-Class Coverage | Percentage of known images accepted at a confidence threshold |
+| OOD False Acceptance Rate | Percentage of OOD images incorrectly accepted as known |
+| OOD Rejection Rate | Percentage of OOD images rejected |
+| Selective Accuracy | Classification accuracy among accepted known-class images |
+
+An AUROC of 0.5 represents chance-level ranking, while a value closer to 1.0 indicates stronger separation between the two groups.
 
 ## Experimental Results
 
-### Classification Performance
+### 1. Known-Class Classification
 
 | Metric | Result |
 |---|---:|
 | Known-class test accuracy | 94.94% |
-| Selected confidence threshold | 0.50 |
-| Known-class coverage | 99.54% |
-| OOD false acceptance rate | 97.06% |
-| Selective accuracy | 95.26% |
 
-### OOD Detection Comparison
+The classifier achieved 94.94% accuracy on the known-class test set.
+
+### 2. OOD Detection Comparison
+
+The following AUROC values were obtained using the current evaluation pipeline.
 
 | Detection Method | OOD AUROC |
 |---|---:|
-| Maximum Softmax Probability (MSP) | 0.7698 |
+| Maximum Softmax Probability (MSP) | 0.7697 |
 | Energy-Based Detection | 0.7695 |
-| Mahalanobis Distance | 0.7692 |
+| Mahalanobis Distance | 0.6829 |
 
-MSP achieved the highest AUROC among the three methods, although the differences were very small. All three methods showed moderate ability to distinguish known images from out-of-distribution (OOD) images.
+MSP and Energy achieved similar AUROC values in this experiment. Mahalanobis Distance achieved a lower AUROC.
 
-**Evaluation note:** The Mahalanobis result is exploratory because its feature statistics were estimated using the known test set. A rigorous evaluation should estimate these statistics using training data and evaluate on held-out test data.
+These results suggest that MSP and Energy provide moderate separation between known and unfamiliar images under the current experimental setup.
 
-### Key Observation
+The small difference between MSP and Energy should not be interpreted as evidence that one method is consistently superior.
 
-The selected threshold of 0.50 achieved high known-class coverage but rejected very few OOD inputs. The OOD false acceptance rate was 97.06%, indicating that threshold-based rejection needs further improvement.
+### 3. Confidence Threshold Evaluation
+
+A confidence threshold was selected using validation data.
+
+The selected threshold was then evaluated on the known-class and OOD test sets.
+
+| Metric | Result |
+|---|---:|
+| Selected threshold | 0.99 |
+| Known-class coverage | 82.62% |
+| OOD false acceptance rate | 44.94% |
+| OOD rejection rate | 55.06% |
+| Selective accuracy | 99.15% |
+
+### Interpretation
+
+The results demonstrate the trade-off between accepting known images and rejecting unfamiliar inputs.
+
+At a threshold of 0.99:
+
+- 82.62% of known-class images were accepted.
+- 44.94% of OOD images were incorrectly accepted.
+- 55.06% of OOD images were rejected.
+- Accepted known-class predictions achieved 99.15% selective accuracy.
+
+The higher threshold improves the reliability of accepted known-class predictions but reduces the number of known images accepted.
+
+However, the OOD false acceptance rate remains substantial. The model therefore cannot reliably reject all unfamiliar inputs.
+
+## Project Workflow
+
+The project follows these steps:
+
+1. Load and preprocess the CIFAR-10 dataset.
+2. Separate known classes from OOD classes.
+3. Initialize a pretrained ResNet18 model.
+4. Modify the classification layer for five known classes.
+5. Train and evaluate the classifier.
+6. Extract confidence scores and feature representations.
+7. Calculate MSP, Energy, and Mahalanobis scores.
+8. Evaluate OOD detection using AUROC.
+9. Select a confidence threshold using validation data.
+10. Evaluate known-class coverage and OOD rejection on held-out test data.
+
+## Technologies Used
+
+- Python
+- PyTorch
+- Torchvision
+- NumPy
+- Scikit-learn
+- Matplotlib
+- Google Colab
+- GitHub
 
 ## Repository Contents
 
-- `README.md` — Project documentation
-- `your_notebook.ipynb` — Model training and evaluation notebook
-- `results.json` — Recorded evaluation metrics
+| File | Description |
+|---|---|
+| `README.md` | Project documentation |
+| `your_notebook.ipynb` | Model training, evaluation, and OOD detection implementation |
+| `results.json` | Recorded evaluation metrics |
 
-The trained model weights are not included because the file exceeds GitHub's regular upload limit.
+**Note:** Replace `your_notebook.ipynb` with the actual filename of the uploaded notebook.
+
+The trained model weights are not included because the file exceeds GitHub's regular upload limit. The notebook contains the implementation used to train and evaluate the model.
 
 ## Limitations
 
 - The model can assign high confidence to unfamiliar images.
-- The selected confidence threshold rejects very few OOD inputs.
+- The selected confidence threshold still allows many OOD images to be accepted.
 - MSP and Energy produced very similar AUROC values in this experiment.
-- The Mahalanobis evaluation requires a stricter train/test separation.
-- Results may vary with different datasets, training settings, and OOD classes.
+- OOD performance depends on the dataset, model, score distribution, and selected threshold.
+- The Mahalanobis implementation relies on estimated feature statistics and covariance regularization.
+- Additional experiments are needed to establish whether the observed differences between detection methods are statistically meaningful.
 
 ## Future Improvements
 
-- Experiment with temperature scaling.
-- Tune the detection threshold using validation data.
-- Recalculate and compare all OOD AUROC scores using the final model.
-- Evaluate additional OOD detection methods.
-- Test the model on more diverse and unfamiliar datasets.
+Potential improvements include:
 
-## Technologies Used
-
-Python, PyTorch, Torchvision, NumPy, Scikit-learn, Matplotlib, and Google Colab.
+- Investigating temperature scaling for confidence calibration.
+- Evaluating additional threshold-selection strategies.
+- Testing on more diverse OOD datasets.
+- Exploring alternative OOD detection techniques.
+- Investigating stronger feature representations.
+- Comparing performance across different architectures.
+- Evaluating detection performance across multiple random seeds.
+- Adding a simple interface that allows users to upload images and view predictions and uncertainty scores.
 
 ## Conclusion
 
-This project explores an important limitation of deep learning: a model can be accurate on familiar data while remaining unreliable on unfamiliar inputs.
+This project investigates a fundamental challenge in deep learning: a model can perform well on familiar data while remaining uncertain or overconfident when presented with unfamiliar inputs.
 
-By comparing confidence-based and feature-based detection methods, the project investigates how uncertainty estimation can help build more reliable image classification systems.
+By comparing Maximum Softmax Probability, Energy-Based Detection, and Mahalanobis Distance, the project explores different approaches to identifying out-of-distribution images.
+
+The experiments highlight the trade-off between classification coverage and OOD rejection and demonstrate why evaluating model confidence is important when building more reliable machine learning systems.
