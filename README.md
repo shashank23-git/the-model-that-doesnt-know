@@ -70,7 +70,9 @@ The project investigates:
 - OOD false acceptance rate
 - Selective accuracy
 
-## Latest Reported Results
+## Experimental Results
+
+### Classification Performance
 
 | Metric | Result |
 |---|---:|
@@ -80,9 +82,21 @@ The project investigates:
 | OOD false acceptance rate | 97.06% |
 | Selective accuracy | 95.26% |
 
-These results show that the selected threshold rejects very few unfamiliar inputs. The model therefore still has significant limitations in OOD detection.
+### OOD Detection Comparison
 
-The AUROC comparison requires recalculation using the final retrained model before definitive conclusions can be drawn about which detection method performs best.
+| Detection Method | OOD AUROC |
+|---|---:|
+| Maximum Softmax Probability (MSP) | 0.7698 |
+| Energy-Based Detection | 0.7695 |
+| Mahalanobis Distance | 0.7692 |
+
+MSP achieved the highest AUROC among the three methods, although the differences were very small. All three methods showed moderate ability to distinguish known images from out-of-distribution (OOD) images.
+
+**Evaluation note:** The Mahalanobis result is exploratory because its feature statistics were estimated using the known test set. A rigorous evaluation should estimate these statistics using training data and evaluate on held-out test data.
+
+### Key Observation
+
+The selected threshold of 0.50 achieved high known-class coverage but rejected very few OOD inputs. The OOD false acceptance rate was 97.06%, indicating that threshold-based rejection needs further improvement.
 
 ## Repository Contents
 
