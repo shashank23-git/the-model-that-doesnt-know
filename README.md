@@ -108,10 +108,11 @@ The trained model weights are not included because the file exceeds GitHub's reg
 
 ## Limitations
 
-- The model may assign high confidence to unfamiliar images.
-- The selected threshold does not effectively reject OOD inputs.
-- Detection performance depends on the scoring method and threshold.
-- Further evaluation is required before drawing definitive conclusions about the relative performance of the detection methods.
+- The model can assign high confidence to unfamiliar images.
+- The selected confidence threshold rejects very few OOD inputs.
+- MSP and Energy produced very similar AUROC values in this experiment.
+- The Mahalanobis evaluation requires a stricter train/test separation.
+- Results may vary with different datasets, training settings, and OOD classes.
 
 ## Future Improvements
 
