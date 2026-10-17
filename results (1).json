@@ -22,8 +22,10 @@
     "ood_rejection": 0.5506,
     "selective_accuracy": 0.9915,
     "ood_auroc": {
-        "MSP": 0.7698,
+        "MSP": 0.7697,
         "Energy": 0.7695,
         "Mahalanobis": 0.6829
-    }
+    },
+    "threshold_selection": "Selected using validation data",
+    "mahalanobis_statistics": "Estimated using known training features"
 }
