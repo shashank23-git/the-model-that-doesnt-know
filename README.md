@@ -2,75 +2,67 @@
 
 ## Overview
 
-An uncertainty-aware image classification system that investigates whether a deep learning model can recognize when an input belongs to an unfamiliar class.
+Deep learning models can make confident predictions even when they encounter images from classes they were never trained to recognize.
 
-The project compares confidence-based and feature-based methods for out-of-distribution (OOD) detection.
+This project explores uncertainty estimation and Out-of-Distribution (OOD) detection using a ResNet18 image classifier trained on CIFAR-10.
 
-## Objectives
+The goal is to investigate whether a model can distinguish familiar images from unfamiliar ones instead of blindly making predictions.
 
-- Classify images belonging to five known categories.
-- Detect inputs from classes excluded during training.
-- Investigate overconfident predictions.
-- Compare multiple OOD detection techniques.
-- Evaluate the trade-off between prediction accuracy and coverage.
+## Problem Statement
+
+Traditional image classifiers always return a prediction, even when an input belongs to an unknown class.
+
+For example, a classifier trained to recognize airplanes, automobiles, birds, cats, and deer might confidently classify a dog as a cat.
+
+This project investigates techniques that can help identify such unfamiliar inputs.
 
 ## Dataset
 
-CIFAR-10 is used for controlled experiments.
+The project uses the CIFAR-10 dataset.
 
-Known classes:
+### Known Classes
 - Airplane
 - Automobile
 - Bird
 - Cat
 - Deer
 
-OOD classes:
+### Out-of-Distribution Classes
 - Dog
 - Frog
 - Horse
 - Ship
 - Truck
 
-The model is trained exclusively on the five known classes.
+The model is trained using the five known classes. The remaining five classes are used to evaluate its ability to identify unfamiliar images.
 
-## Model
+## Model Architecture
 
-ResNet18 pretrained on ImageNet and fine-tuned for five-class classification.
-
-Framework: PyTorch
+- Model: ResNet18
+- Framework: PyTorch
+- Pretrained weights: ImageNet
+- Loss function: Cross-Entropy Loss
+- Optimizer: Adam
+- Learning rate: 0.0001
+- Training epochs: 5
 
 ## OOD Detection Methods
 
 ### 1. Maximum Softmax Probability (MSP)
 
-Uses the maximum softmax probability as a confidence score.
+Uses the highest softmax probability as a confidence score. Lower confidence can indicate an unfamiliar input.
 
 ### 2. Energy-Based Detection
 
-Uses the energy score calculated from the model's logits.
+Uses energy scores derived from the model's logits to investigate whether an input differs from the training distribution.
 
 ### 3. Mahalanobis Distance
 
-Measures how far extracted image features lie from the known-class feature distributions.
-
-## Initial Experimental Results
-
-| Method | OOD AUROC |
-|---|---:|
-| MSP | 0.7929 |
-| Energy-Based Detection | 0.7885 |
-| Mahalanobis Distance | 0.7066 |
-
-These are preliminary results from the initial model and must not be interpreted as final retrained-model results.
-
-## Key Observation
-
-The classifier achieves high accuracy on known classes but can also assign high confidence to unfamiliar inputs.
-
-This demonstrates why classification confidence alone is not sufficient to guarantee reliable predictions.
+Measures how far an input's feature representation is from the known-class feature distributions.
 
 ## Evaluation Metrics
+
+The project investigates:
 
 - Classification accuracy
 - OOD AUROC
@@ -78,25 +70,49 @@ This demonstrates why classification confidence alone is not sufficient to guara
 - OOD false acceptance rate
 - Selective accuracy
 
+## Latest Reported Results
+
+| Metric | Result |
+|---|---:|
+| Known-class test accuracy | 94.94% |
+| Selected confidence threshold | 0.50 |
+| Known-class coverage | 99.54% |
+| OOD false acceptance rate | 97.06% |
+| Selective accuracy | 95.26% |
+
+These results show that the selected threshold rejects very few unfamiliar inputs. The model therefore still has significant limitations in OOD detection.
+
+The AUROC comparison requires recalculation using the final retrained model before definitive conclusions can be drawn about which detection method performs best.
+
+## Repository Contents
+
+- `README.md` — Project documentation
+- `your_notebook.ipynb` — Model training and evaluation notebook
+- `results.json` — Recorded evaluation metrics
+
+The trained model weights are not included because the file exceeds GitHub's regular upload limit.
+
 ## Limitations
 
-- Evaluation uses CIFAR-10 classes held out from classifier training.
-- Results may differ on external datasets and real-world images.
-- High confidence does not guarantee that a prediction is correct.
-- OOD detection performance depends on the model, scoring method, and threshold.
+- The model may assign high confidence to unfamiliar images.
+- The selected threshold does not effectively reject OOD inputs.
+- Detection performance depends on the scoring method and threshold.
+- Further evaluation is required before drawing definitive conclusions about the relative performance of the detection methods.
 
 ## Future Improvements
 
-- Evaluate on external datasets.
-- Investigate alternative uncertainty estimation methods.
-- Improve threshold selection and calibration.
-- Develop an interactive image-classification demo.
+- Experiment with temperature scaling.
+- Tune the detection threshold using validation data.
+- Recalculate and compare all OOD AUROC scores using the final model.
+- Evaluate additional OOD detection methods.
+- Test the model on more diverse and unfamiliar datasets.
 
-## Technologies
+## Technologies Used
 
-- Python
-- PyTorch
-- Torchvision
-- NumPy
-- Scikit-learn
-- Matplotlib
+Python, PyTorch, Torchvision, NumPy, Scikit-learn, Matplotlib, and Google Colab.
+
+## Conclusion
+
+This project explores an important limitation of deep learning: a model can be accurate on familiar data while remaining unreliable on unfamiliar inputs.
+
+By comparing confidence-based and feature-based detection methods, the project investigates how uncertainty estimation can help build more reliable image classification systems.
