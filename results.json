@@ -1,0 +1,10 @@
+{
+    "known_test_accuracy": 0.9494,
+    "selected_threshold": 0.5,
+    "known_coverage": 0.9954,
+    "ood_false_acceptance": 0.9706,
+    "selective_accuracy": 0.9525818766325096,
+    "msp_ood_auroc": 0.7929,
+    "energy_ood_auroc": 0.7885,
+    "mahalanobis_ood_auroc": 0.7066
+}
