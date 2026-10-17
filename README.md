@@ -203,10 +203,10 @@ The project follows these steps:
 | File | Description |
 |---|---|
 | `README.md` | Project documentation |
-| `he_Model_That_Doesnt.ipynb` | Model training, evaluation, and OOD detection implementation |
+| `The_Model_That_Doesnt.ipynb` | Model training, evaluation, and OOD detection implementation |
 | `results.json` | Recorded evaluation metrics |
 
-**Note:** Replace `your_notebook.ipynb` with the actual filename of the uploaded notebook.
+
 
 The trained model weights are not included because the file exceeds GitHub's regular upload limit. The notebook contains the implementation used to train and evaluate the model.
 
